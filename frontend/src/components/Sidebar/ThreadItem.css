@@ -1,0 +1,257 @@
+/* .thread-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.thread-item:hover {
+  background: #f5f5f5;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.thread-item.active {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.2);
+}
+
+.thread-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.thread-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.thread-item.active .thread-title {
+  color: #667eea;
+}
+
+.thread-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.thread-date {
+  font-size: 11px;
+  color: #a0aec0;
+  font-weight: 500;
+}
+
+.guest-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  background: #fed7d7;
+  color: #c53030;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.thread-delete-btn {
+  opacity: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.thread-item:hover .thread-delete-btn {
+  opacity: 1;
+}
+
+.thread-delete-btn:hover {
+  background: rgba(220, 38, 38, 0.1);
+  transform: scale(1.1);
+} */
+
+
+/* new  thread edit*/ 
+.thread-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.thread-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background: linear-gradient(180deg, #00f5ff, #b537f2);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.thread-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 245, 255, 0.3);
+  transform: translateX(4px);
+  box-shadow: 0 4px 20px rgba(0, 245, 255, 0.2);
+}
+
+.thread-item:hover::before {
+  transform: scaleY(1);
+}
+
+.thread-item.active {
+  background: rgba(0, 245, 255, 0.1);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 4px 20px rgba(0, 245, 255, 0.3);
+}
+
+.thread-item.active::before {
+  transform: scaleY(1);
+}
+
+.thread-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.thread-title {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thread-item.active .thread-title {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+}
+
+/* EDIT INPUT */
+.thread-title-input {
+  width: 100%;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--neon-cyan);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  outline: none;
+  box-shadow: 
+    0 0 20px rgba(0, 245, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.thread-title-input:focus {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 0 30px rgba(0, 245, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.thread-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.thread-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.guest-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  background: rgba(255, 0, 110, 0.2);
+  color: var(--neon-pink);
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 0, 110, 0.3);
+}
+
+/* ACTION BUTTONS */
+.thread-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.thread-item:hover .thread-actions {
+  opacity: 1;
+}
+
+.thread-edit-btn,
+.thread-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thread-edit-btn {
+  background: rgba(0, 245, 255, 0.1);
+  border: 1px solid rgba(0, 245, 255, 0.2);
+}
+
+.thread-edit-btn:hover {
+  background: rgba(0, 245, 255, 0.2);
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.4);
+}
+
+.thread-delete-btn {
+  background: rgba(255, 0, 110, 0.1);
+  border: 1px solid rgba(255, 0, 110, 0.2);
+}
+
+.thread-delete-btn:hover {
+  background: rgba(255, 0, 110, 0.2);
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(255, 0, 110, 0.4);
+}

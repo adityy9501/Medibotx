@@ -1,0 +1,11 @@
+backend/medbotx/
+.env
+frontend/node_modules/
+D:\my_Codes\medbotx\chatbot.db
+
+__pycache__/
+*.pyc
+*.pyo
+backend/chatot.db/
+backend/chatbot.db.shm
+backend/chatbot.db.wal
