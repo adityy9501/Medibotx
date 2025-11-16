@@ -299,7 +299,7 @@ Backend: Check if email exists
     User authenticated 
 
 
-   LOGIN FLOW                          
+LOGIN FLOW                          
 
 
 User Input: email + password
@@ -333,8 +333,7 @@ Backend: Find user by email
              ▼
         User authenticated 
 
-
-           PROTECTED REQUEST                        
+                        
 
 
 Frontend makes API request
