@@ -28,57 +28,48 @@
 
 
 2. Architecture Diagram
+┌────────────────────────────────────────────────┐
+│           PRESENTATION LAYER                   │
+│                                                │
+│  React Components                              │
+│  • Header                                      │
+│  • Sidebar (Thread List)                       │
+│  • ChatWindow (Messages)                       │
+│  • MessageInput                                │
+│                                                │
+└────────────────────────────────────────────────┘
+                    ↕ HTTP/SSE
+┌────────────────────────────────────────────────┐
+│           APPLICATION LAYER                    │
+│                                                │
+│  FastAPI Backend                               │
+│  • Authentication (/api/auth)                  │
+│  • Thread Management (/api/threads)            │
+│  • Chat Streaming (/api/chat/stream)           │
+│                                                │
+│  Services                                      │
+│  • ChatService → Groq API                      │
+│  • UserService → Auth Logic                    │
+│  • MemoryService → Database                    │
+│                                                │
+└────────────────────────────────────────────────┘
+                    ↕ SQL
+┌────────────────────────────────────────────────┐
+│           DATA LAYER                           │
+│                                                │
+│  SQLAlchemy ORM                                │
+│  • User Model                                  │
+│  • Thread Model                                │
+│  • Message Model                               │
+│                                                │
+│  Database (SQLite/PostgreSQL)                  │
+│  • users table                                 │
+│  • threads table                               │
+│  • messages table                              │
+│                                                │
+└────────────────────────────────────────────────┘
 
-┌─────────────────────────────── CLIENT LAYER ────────────┐
-│ React Frontend (Port 3000)                              │
-│ ┌──────────┐  ┌──────────┐  ┌────────────┐              │
-│ │ Header   │  │ Sidebar  │  │ ChatWindow │              │
-│ └──────────┘  └──────────┘  └────────────┘              │
-│ ┌──────────────┐  ┌─────────────┐  ┌──────────┐         │
-│ │ AuthContext  │  │ Services    │  │ Hooks     │        │
-│ └──────────────┘  └─────────────┘  └──────────┘         │
-└─────────────────────────── HTTP / SSE ↓ ────────────────┘
 
-
-┌────────────────────────────── API GATEWAY LAYER ────────┐
-│ FastAPI Backend (Port 8000)                              │
-│ ┌──────────┐  ┌──────────┐  ┌──────────┐                 │
-│ │  CORS    │  │   JWT    │  │  Routes  │                 │
-│ └──────────┘  └──────────┘  └──────────┘                 │
-│    ┌────────────────────────────────────────────────────┐ │
-│    │ /api/auth/ (signup, login)                          │ 
-│    │ /api/threads/ (GET, POST, PUT, DELETE)              │  
-│    │ /api/chat/stream  (SSE streaming)                   │
-│    └───────────────────────────────────────────────────  │
-└─────────────────────────────── ↓ ───────────────────────┘
-
-
-┌──────────────────────────────── SERVICE LAYER ───────────────┐
-│ ┌──────────────┐  ┌──────────────┐  ┌───────────────┐          │
-│ │ UserService  │  │ ChatService  │  │ MemoryService  │       │
-│ │ - create     │  │ - stream     │  │ - save         │       │
-│ │ - verify     │  │ - build_msgs │  │ - history      │       │
-│ └──────────────┘  └──────────────┘  └───────────────┘        │
-└─────────────────────────────── ↓ ────────────────────────────┘
-
-
-┌────────────────────────────── EXTERNAL SERVICES ────────────┐
-│ ChatGroq API (Groq Cloud)                                   │
-│ • Model: llama-3.3-70b-versatile                            │
-│ • Mode: Streaming (Async Generator)                         │
-│ • System Prompt: Medical-only responses                     │
-└─────────────────────────────── ↓ ───────────────────────── ─┘
-
-
-┌──────────────────────────────── DATA LAYER ─────────────┐
-│ SQLAlchemy ORM                                                     
-│ ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
-│ │ User Model   │  │ Thread Model │  │ Message Model│              
-│ └──────────────┘  └──────────────┘  └──────────────┘   │
-│ Database: SQLite / PostgreSQL                                      
-│ • Tables: users, threads, messages                     │
-│ • WAL mode, pooling, timestamps                                    
-└────────────────────────────────────────────────────────┘
 
 Frontend
 
