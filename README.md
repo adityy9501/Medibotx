@@ -27,113 +27,98 @@
     Handles 100+ concurrent users
 
 
-2. Architecture Diagram
+2. Architecture 
 
-┌──────────────────────────────────────────────────────────────────┐
-│                         CLIENT LAYER                             │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌────────────────────────────────────────────────────────┐    │
-│  │              React Frontend                            │    │
-│  │                                                         │    │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │    │
-│  │  │   Header    │  │   Sidebar   │  │  ChatWindow │   │    │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘   │    │
-│  │                                                         │    │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │    │
-│  │  │AuthContext  │  │ Services    │  │  Hooks      │   │    │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘   │    │
-│  └────────────────────────────────────────────────────────┘    │
-│                            │                                    │
-│                            │ HTTP/SSE                           │
-└────────────────────────────┼────────────────────────────────────┘
-                             │
-                             ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                       API GATEWAY LAYER                          │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌────────────────────────────────────────────────────────┐    │
-│  │         FastAPI Backend                                 │    │
-│  │                                                         │    │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐            │    │
-│  │  │   CORS   │  │   JWT    │  │  Routes  │            │    │
-│  │  │Middleware│  │  Auth    │  │          │            │    │
-│  │  └──────────┘  └──────────┘  └──────────┘            │    │
-│  │       │              │              │                  │    │
-│  │       └──────────────┴──────────────┘                  │    │
-│  │                      │                                 │    │
-│  │  ┌───────────────────┴────────────────────┐          │    │
-│  │  │                                         │          │    │
-│  │  │  /api/auth/   /api/threads/  /api/chat/│          │    │
-│  │  │   signup         GET          stream   │          │    │
-│  │  │   login          POST         (SSE)    │          │    │
-│  │  │                  PUT                    │          │    │
-│  │  │                  DELETE                 │          │    │
-│  │  └─────────────────────────────────────────┘          │    │
-│  └────────────────────────────────────────────────────────┘    │
-│                            │                                    │
-└────────────────────────────┼────────────────────────────────────┘
-                             │
-                             ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                      SERVICE LAYER                               │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐      │
-│  │  UserService  │  │  ChatService  │  │MemoryService  │      │
-│  │               │  │               │  │               │      │
-│  │ - create_user │  │ - stream_resp │  │ - save_message│      │
-│  │ - verify      │  │ - build_msgs  │  │ - get_history │      │
-│  └───────────────┘  └───────────────┘  └───────────────┘      │
-│                            │                    │               │
-│                            │                    │               │
-└────────────────────────────┼────────────────────┼───────────────┘
-                             │                    │
-                             ▼                    ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                    EXTERNAL SERVICES                             │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌────────────────────────────────────────────────────┐        │
-│  │           ChatGroq API (Groq Cloud)                │        │
-│  │                                                     │        │
-│  │   Model: llama-3.3-70b-versatile                   │        │
-│  │   Mode: Streaming (AsyncGenerator)                 │        │
-│  │   System Prompt: Medical-only responses            │        │
-│  └────────────────────────────────────────────────────┘        │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
-                             │
-                             │
-┌──────────────────────────────────────────────────────────────────┐
-│                      DATA LAYER                                  │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌────────────────────────────────────────────────────────┐    │
-│  │              SQLAlchemy ORM                             │    │
-│  │                                                         │    │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐│    │
-│  │  │ User Model   │  │Thread Model  │  │Message Model ││    │
-│  │  └──────────────┘  └──────────────┘  └──────────────┘│    │
-│  └────────────────────────────────────────────────────────┘    │
-│                            │                                    │
-│                            ▼                                    │
-│  ┌────────────────────────────────────────────────────────┐    │
-│  │      Database (SQLite/PostgreSQL)                       │    │
-│  │                                                         │    │
-│  │  Tables:                                                │    │
-│  │    - users                                              │    │
-│  │    - threads                                            │    │
-│  │    - messages                                           │    │
-│  │                                                         │    │
-│  │  Features:                                              │    │
-│  │    - WAL mode (concurrent reads)                        │    │
-│  │    - Connection pooling (20+30)                         │    │
-│  │    - Automatic timestamps                               │    │
-│  └────────────────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────────────────────┘
-3. Technology Stack
+   
+    Step 1: User Input (CLIENT LAYER)
+    
+      User types message → MessageInput component → ChatWindow.handleSend()
+    
+    Step 2: Create/Select Thread (API GATEWAY)
+        
+      POST /api/threads/ → ThreadService creates new conversation
+        Returns thread_id = 5
+        
+    Step 3: Send Message (CLIENT → BACKEND)
+    
+     POST /api/chat/stream
+        
+     Body:  {thread_id: 5, message: "What are symptoms of diabetes?"}
+        Headers: Authorization: Bearer <JWT token>
+        
+    Step 4: Backend Processing (SERVICE LAYER)
+    
+     chat.py endpoint receives request
+        ↓
+        Verify JWT token
+        ↓
+        MemoryService.save_message(thread_id=5, role="user", message)
+        ↓
+        MemoryService.get_conversation_history(thread_id=5, limit=10)
+        ↓
+        ChatService.stream_response(message, history)
+        
+    Step 5: Build Message Array
+    
+    
+    messages = [
+          {role: "system", content: "Medical system prompt..."},
+          {role: "user", content: "Previous question..."},
+          {role: "assistant", content: "Previous answer..."},
+          {role: "user", content: "What are symptoms of diabetes?"}
+        ]
+        
+    
+    Step 6: Call AI (EXTERNAL SERVICES)
+    
+     ChatGroq API receives messages
+        ↓
+        LLaMA 3.3 70B processes request
+        ↓
+        Generates response in chunks (streaming):
+          "Diabetes " → "symptoms " → "include " → "increased " → "thirst..."
+        
+      
+    Step 7: Stream to Frontend (SERVICE → CLIENT)
+    
+        
+      Backend formats as Server-Sent Events (SSE):
+        data: {"content": "Diabetes "}
+        data: {"content": "symptoms "}
+        data: {"content": "include "}
+        ...
+        data: {"done": true}
+        
+    
+    Step 8: Display Real-Time (CLIENT LAYER)
+    
+     StreamingMessage.jsx receives chunks
+        ↓
+        Displays 
+        ↓
+        Shows typing cursor blinking
+        ↓
+        Accumulates full response
+        
+    Step 9: Save Complete Response (DATA LAYER)
+    
+    
+     MemoryService.save_message(
+          thread_id=5, 
+          role="assistant", 
+          content="Complete diabetes symptoms answer..."
+        )
+    
+    Step 10: UI Update (CLIENT LAYER)
+    
+    
+      Remove StreamingMessage component
+        ↓
+        Add MessageItem component with full response
+        ↓
+        Update thread's updated_at timestamp
+
+
 Frontend
 
 React 18.2.0
@@ -166,45 +151,62 @@ SQLite (Development)
 
 
 4. Database Schema
-Entity Relationship Diagram
-text
-┌─────────────────────┐
-│       users         │
-├─────────────────────┤
-│ id (PK)             │
-│ email (UNIQUE)      │
-│ hashed_password     │
-│ is_active           │
-│ created_at          │
-└──────────┬──────────┘
-           │ 1
-           │
-           │ *
-┌──────────┴──────────┐
-│      threads        │
-├─────────────────────┤
-│ id (PK)             │
-│ user_id (FK)        │
-│ title               │
-│ is_guest            │
-│ created_at          │
-│ updated_at          │
-└──────────┬──────────┘
-           │ 1
-           │
-           │ *
-┌──────────┴──────────┐
-│      messages       │
-├─────────────────────┤
-│ id (PK)             │
-│ thread_id (FK)      │
-│ role                │
-│ content             │
-│ created_at          │
-└─────────────────────┘
+   
+    Table 1: users (User Accounts)
+    Purpose:
+    Stores registered user accounts and authentication information.
+    
+    Fields:
+    id (PK) - Primary Key, unique identifier for each user (auto-increments: 1, 2, 3...)
+    
+    email (UNIQUE) - User's email address (must be unique, no duplicates)
+    
+    hashed_password - Password encrypted with Argon2 (never stored as plain text)
+    
+    is_active - Boolean flag (true/false) to enable/disable accounts
+    
+    created_at - Timestamp when account was created
 
 
+
+    Table 2: threads (Conversations)
+    Purpose:
+    Stores conversation threads - each represents one chat session.
+    
+    Fields:
+    id (PK) - Primary Key, unique thread identifier
+    
+    user_id (FK) - Foreign Key linking to users table (who owns this conversation)
+    
+    title - Thread name (e.g., "Diabetes Questions", "Blood Pressure Help")
+    
+    is_guest - Boolean flag indicating if this is a guest conversation (no user account)
+    
+    created_at - When the conversation started
+    
+    updated_at - Last message timestamp (updates automatically)
+
+
+    Table 3: messages (Chat Messages)
+    Purpose:
+    Stores individual messages within conversations (both user and AI responses).
+    
+    Fields:
+    id (PK) - Primary Key, unique message identifier
+    
+    thread_id (FK) - Foreign Key linking to threads table (which conversation)
+    
+    role - Who sent the message: "user" or "assistant"
+    
+    content - The actual message text (TEXT type, can be very long)
+    
+    created_at - Exact timestamp when message was sent
+
+
+
+    
 5. API Endpoints
+   
 Authentication Endpoints
 
 Method	Endpoint	
@@ -235,412 +237,123 @@ POST	/api/chat/stream	Stream AI response (SSE)	Optional
 
 6. Request Flow
 
+    1. User Access
+       Landing Page → Guest/Login choice → Authentication → Main interface
+    
+    2. Conversation Management  
+       Click "New" → Create thread → Get thread_id → Store in state
+    
+    3. Chat Interaction (Repeating Loop)
+       Type message → Send to backend → Save user msg → Get history
+       → Build AI request → Call Groq → Stream chunks → Display real-time
+       → Save AI response → Update UI → Ready for next message
+    
+    The cycle repeats from Step 3 onwards for every user message
 
 
-Complete User Journey
 
-┌─────────────────────────────────────────────────────────────┐
-│                    1. USER ACCESS                           │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-                   ┌─────────────────┐
-                   │  Landing Page   │
-                   └────────┬────────┘
-                            │
-              ┌─────────────┴─────────────┐
-              │                           │
-              ▼                           ▼
-    ┌──────────────────┐        ┌──────────────────┐
-    │  Guest Mode      │        │  Login/Signup    │
-    │  (Skip Auth)     │        │                  │
-    └────────┬─────────┘        └────────┬─────────┘
-             │                           │
-             │                           ▼
-             │                  ┌──────────────────┐
-             │                  │ POST /api/auth/  │
-             │                  │     signup       │
-             │                  └────────┬─────────┘
-             │                           │
-             │                           ▼
-             │                  ┌──────────────────┐
-             │                  │  JWT Token       │
-             │                  │  Stored in       │
-             │                  │  localStorage    │
-             │                  └────────┬─────────┘
-             │                           │
-             └───────────┬───────────────┘
-                         │
-┌────────────────────────┴────────────────────────────────────┐
-│                 2. CONVERSATION MANAGEMENT                  │
-└─────────────────────────────────────────────────────────────┘
-                         │
-                         ▼
-              ┌────────────────────┐
-              │ POST /api/threads/ │
-              │ (Create new thread)│
-              └──────────┬─────────┘
-                         │
-                         ▼
-         ┌───────────────────────────────┐
-         │  Thread ID returned           │
-         │  Stored in React state        │
-         └───────────┬───────────────────┘
-                     │
-┌────────────────────┴────────────────────────────────────────┐
-│                    3. CHAT INTERACTION                      │
-└─────────────────────────────────────────────────────────────┘
-                     │
-                     ▼
-         ┌────────────────────────┐
-         │  User types message    │
-         │  in MessageInput       │
-         └──────────┬─────────────┘
-                    │
-                    ▼
-         ┌────────────────────────┐
-         │ POST /api/chat/stream  │
-         │  {thread_id, message}  │
-         └──────────┬─────────────┘
-                    │
-        ┌───────────┴───────────┐
-        │                       │
-        ▼                       ▼
-┌───────────────┐    ┌──────────────────┐
-│  Save user    │    │  Get conversation│
-│  message to DB│    │  history from DB │
-└───────┬───────┘    └────────┬─────────┘
-        │                     │
-        └──────────┬──────────┘
-                   │
-                   ▼
-         ┌──────────────────────┐
-         │  ChatGroq API Call   │
-         │  with history +      │
-         │  system prompt       │
-         └──────────┬───────────┘
-                    │
-                    ▼
-         ┌──────────────────────┐
-         │  Stream response     │
-         │  via SSE (chunks)    │
-         └──────────┬───────────┘
-                    │
-        ┌───────────┴───────────┐
-        │                       │
-        ▼                       ▼
-┌───────────────┐    ┌──────────────────┐
-│  Frontend     │    │  Save assistant  │
-│  displays     │    │  message to DB   │
-│  real-time    │    │                  │
-└───────────────┘    └──────────────────┘
+
 7. Authentication Flow
 
 
 JWT Authentication Process
 
-┌──────────────────────────────────────────────────────────┐
-│                    SIGNUP FLOW                           │
-└──────────────────────────────────────────────────────────┘
 
-User Input: email + password
-     │
-     ▼
-Frontend Validation
-     │
-     ▼
+User fills signup form
+    ↓
 POST /api/auth/signup
-     │
-     ▼
-Backend: Check if email exists
-     │
-     ├─► Email exists? → 400 Error
-     │
-     └─► Email unique ✓
-         │
-         ▼
-    Hash password (Argon2)
-         │
-         ▼
-    Create user in database
-         │
-         ▼
-    Generate JWT token
-         │
-         ▼
-    Return {access_token, token_type}
-         │
-         ▼
-    Frontend stores token in localStorage
-         │
-         ▼
-    Axios interceptor adds token to all requests
-         │
-         ▼
-    User authenticated ✓
-
-┌──────────────────────────────────────────────────────────┐
-│                    LOGIN FLOW                            │
-└──────────────────────────────────────────────────────────┘
-
-User Input: email + password
-     │
-     ▼
-POST /api/auth/login
-     │
-     ▼
-Backend: Find user by email
-     │
-     ├─► Not found? → 401 Error
-     │
-     └─► User found ✓
-         │
-         ▼
-    Verify password (Argon2)
-         │
-         ├─► Invalid? → 401 Error
-         │
-         └─► Valid ✓
-             │
-             ▼
-        Generate JWT token
-             │
-             ▼
-        Return {access_token, token_type}
-             │
-             ▼
-        Frontend stores token
-             │
-             ▼
-        User authenticated ✓
-
-┌──────────────────────────────────────────────────────────┐
-│                 PROTECTED REQUEST                        │
-└──────────────────────────────────────────────────────────┘
-
-Frontend makes API request
-     │
-     ▼
-Axios interceptor adds:
-  Authorization: Bearer <token>
-     │
-     ▼
-Backend JWT middleware
-     │
-     ▼
-Decode & verify token
-     │
-     ├─► Invalid/Expired? → 401 Error
-     │
-     └─► Valid ✓
-         │
-         ▼
-    Extract user_id from token
-         │
-         ▼
-    Attach user to request
-         │
-         ▼
-    Process request ✓
-
-
+    ↓
+Backend hashes password (Argon2)
+    ↓
+Save to users table
+    ↓
+Generate JWT token
+    ↓
+Return {access_token: "eyJhbGc..."}
+    ↓
+Frontend stores in localStorage
+    ↓
+Add to all requests: Authorization: Bearer <token>
+    ↓
+User authenticated 
 
 
 
 8. Chat Flow (Detailed)
+
+
 Streaming Response Architecture
-text
-┌──────────────────────────────────────────────────────────┐
-│           FRONTEND: User Types Message                   │
-└──────────────────────────────────────────────────────────┘
-                     │
-                     ▼
-         ┌────────────────────────┐
-         │  ChatWindow.jsx        │
-         │  handleSend()          │
-         └──────────┬─────────────┘
-                    │
-                    ▼
-         ┌────────────────────────┐
-         │  threadService.js      │
-         │  streamChat()          │
-         └──────────┬─────────────┘
-                    │
-                    ▼ HTTP POST + SSE
-┌──────────────────────────────────────────────────────────┐
-│           BACKEND: FastAPI Receives Request              │
-└──────────────────────────────────────────────────────────┘
-                    │
-                    ▼
-         ┌────────────────────────┐
-         │  /api/chat/stream      │
-         │  chat.py endpoint      │
-         └──────────┬─────────────┘
-                    │
-        ┌───────────┴──────────┐
-        │                      │
-        ▼                      ▼
-┌───────────────┐    ┌─────────────────┐
-│  Get thread   │    │  Save user      │
-│  history      │    │  message to DB  │
-│  (last 10)    │    │                 │
-└───────┬───────┘    └────────┬────────┘
-        │                     │
-        └──────────┬──────────┘
-                   │
-                   ▼
-         ┌──────────────────────┐
-         │  ChatService.py      │
-         │  stream_response()   │
-         └──────────┬───────────┘
-                    │
-                    ▼
-         ┌──────────────────────┐
-         │  Build messages:     │
-         │  1. System prompt    │
-         │  2. Conversation     │
-         │     history          │
-         │  3. User message     │
-         └──────────┬───────────┘
-                    │
-                    ▼
-┌──────────────────────────────────────────────────────────┐
-│              ChatGroq API (Groq Cloud)                   │
-└──────────────────────────────────────────────────────────┘
-                    │
-                    ▼
-         ┌──────────────────────┐
-         │  LLaMA 3.3 70B       │
-         │  Process request     │
-         │  Generate response   │
-         └──────────┬───────────┘
-                    │
-                    ▼ Async Generator
-         ┌──────────────────────┐
-         │  Stream chunks       │
-         │  "Diabetes "         │
-         │  "symptoms "         │
-         │  "include: "         │
-         │  ...                 │
-         └──────────┬───────────┘
-                    │
-                    ▼
-┌──────────────────────────────────────────────────────────┐
-│          BACKEND: Process Stream                         │
-└──────────────────────────────────────────────────────────┘
-                    │
-         ┌──────────┴──────────┐
-         │  async for chunk    │
-         │  in llm.astream()   │
-         └──────────┬──────────┘
-                    │
-        ┌───────────┴──────────┐
-        │                      │
-        ▼                      ▼
-┌────────────────┐   ┌─────────────────┐
-│  Yield SSE     │   │  Accumulate     │
-│  data: {       │   │  full response  │
-│    "content":  │   │  for saving     │
-│    "chunk"     │   │                 │
-│  }             │   │                 │
-└────────┬───────┘   └────────┬────────┘
-         │                    │
-         │                    ▼
-         │          ┌──────────────────┐
-         │          │  Save assistant  │
-         │          │  message to DB   │
-         │          └──────────────────┘
-         │
-         ▼ SSE Stream
-┌──────────────────────────────────────────────────────────┐
-│          FRONTEND: Receive & Display                     │
-└──────────────────────────────────────────────────────────┘
-         │
-         ▼
-┌──────────────────────┐
-│  StreamingMessage.jsx│
-│  Displays chunks in  │
-│  real-time with      │
-│  typing animation    │
-└──────────┬───────────┘
-           │
-           ▼
-    ┌──────────────┐
-    │  Complete!   │
-    │  Final msg   │
-    │  shown in    │
-    │  MessageList │
-    └──────────────┘
+Step 1: User types message
+    ↓
+Step 2: POST /api/chat/stream {thread_id, message}
+    ↓
+Step 3a: Save user message to DB
+Step 3b: Get conversation history (parallel)
+    ↓
+Step 4: Build message array
+         [System Prompt, History, User Message]
+    ↓
+Step 5: Call ChatGroq API
+    ↓
+Step 6: LLaMA 3.3 70B generates response
+    ↓
+Step 7: Stream chunks via SSE
+         data: {"content": "Diabetes "}
+         data: {"content": "symptoms "}
+         data: {"content": "include..."}
+    ↓
+Step 8: Frontend displays real-time 
+    ↓
+Step 9: Save complete AI response to DB
+    ↓
+Step 10: Update UI with final message
+
+
 
 
 9. State Management
 
 
-React State Flow
+App.js
+  → currentThreadId: number
+  → showLogin: boolean
+  → showSignup: boolean
 
-┌─────────────────────────────────────────────────────┐
-│                  App.js (Root)                      │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│  State:                                             │
-│  - showLogin: boolean                               │
-│  - showSignup: boolean                              │
-│  - currentThreadId: number | null                   │
-│                                                     │
-│  Methods:                                           │
-│  - handleNewThread()                                │
-│  - handleThreadSelect(id)                           │
-│  - handleThreadCreated(id)                          │
-│                                                     │
-└──────────────────┬──────────────────────────────────┘
-                   │
-        ┌──────────┴──────────┐
-        │                     │
-        ▼                     ▼
-┌───────────────┐    ┌────────────────┐
-│ AuthContext   │    │   Sidebar      │
-│               │    │                │
-│ State:        │    │ State:         │
-│ - user        │    │ - threads[]    │
-│ - token       │    │ - loading      │
-│ - loading     │    │                │
-│               │    │ Methods:       │
-│ Methods:      │    │ - loadThreads()│
-│ - login()     │    │ - handleUpdate │
-│ - signup()    │    │ - handleDelete │
-│ - logout()    │    │                │
-│ - isAuth()    │    │                │
-└───────────────┘    └────────┬───────┘
-                              │
-                              ▼
-                     ┌────────────────┐
-                     │  ChatWindow    │
-                     │                │
-                     │ State:         │
-                     │ - messages[]   │
-                     │ - input        │
-                     │ - loading      │
-                     │ - streaming    │
-                     │ - streamingMsg │
-                     │                │
-                     │ Methods:       │
-                     │ - handleSend() │
-                     │ - loadMessages │
-                     └────────────────┘
+AuthContext
+  → user: {id, email}
+  → token: string
+  → isAuthenticated: boolean
+  → login(), signup(), logout()
+
+Sidebar
+  → threads: Array<Thread>
+  → loading: boolean
+  → loadThreads(), handleUpdate(), handleDelete()
+
+ChatWindow
+  → messages: Array<Message>
+  → input: string
+  → loading: boolean
+  → streaming: boolean
+  → streamingMessage: string
+  → handleSend(), loadMessages()
+
+
+  
 10. Performance Optimizations
 
 
 Backend Optimizations
 
 
-# 1. WAL Mode for SQLite
+ 1. WAL Mode for SQLite
 PRAGMA journal_mode=WAL;          # Multiple readers + 1 writer
 PRAGMA synchronous=NORMAL;        # Faster writes
 PRAGMA busy_timeout=5000;         # Wait for locks
 PRAGMA cache_size=-64000;         # 64MB cache
 PRAGMA temp_store=MEMORY;         # RAM for temp data
 
-# 2. Connection Pooling
+2. Connection Pooling
 engine = create_engine(
     DATABASE_URL,
     poolclass=QueuePool,
@@ -650,10 +363,10 @@ engine = create_engine(
     pool_recycle=3600,         # Recycle after 1 hour
 )
 
-# 3. Multiple Uvicorn Workers
+ 3. Multiple Uvicorn Workers
 uvicorn app.main:app --workers 4  # 4 processes
 
-# 4. Async Database Operations
+ 4. Async Database Operations
 await asyncio.to_thread(
     MemoryService.save_message,
     db, thread_id, "user", message
