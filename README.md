@@ -259,109 +259,23 @@ POST	/api/chat/stream	Stream AI response (SSE)	Optional
 JWT Authentication Process
 
 
-SIGNUP FLOW                         
-
-
-User Input: email + password
-     │
-     ▼
-Frontend Validation
-     │
-     ▼
+User fills signup form
+    ↓
 POST /api/auth/signup
-     │
-     ▼
-Backend: Check if email exists
-     │
-     ├─► Email exists? → 400 Error
-     │
-     └─► Email unique ✓
-         │
-         ▼
-    Hash password (Argon2)
-         │
-         ▼
-    Create user in database
-         │
-         ▼
-    Generate JWT token
-         │
-         ▼
-    Return {access_token, token_type}
-         │
-         ▼
-    Frontend stores token in localStorage
-         │
-         ▼
-    Axios interceptor adds token to all requests
-         │
-         ▼
-    User authenticated 
-
-
-LOGIN FLOW                          
-
-
-User Input: email + password
-     │
-     ▼
-POST /api/auth/login
-     │
-     ▼
-Backend: Find user by email
-     │
-     ├─► Not found? → 401 Error
-     │
-     └─► User found 
-         │
-         ▼
-    Verify password (Argon2)
-         │
-         ├─► Invalid? → 401 Error
-         │
-         └─► Valid 
-             │
-             ▼
-        Generate JWT token
-             │
-             ▼
-        Return {access_token, token_type}
-             │
-             ▼
-        Frontend stores token
-             │
-             ▼
-        User authenticated 
-
-                        
-
-
-Frontend makes API request
-     │
-     ▼
-Axios interceptor adds:
-  Authorization: Bearer <token>
-     │
-     ▼
-Backend JWT middleware
-     │
-     ▼
-Decode & verify token
-     │
-     ├─► Invalid/Expired? → 401 Error
-     │
-     └─► Valid 
-         │
-         ▼
-    Extract user_id from token
-         │
-         ▼
-    Attach user to request
-         │
-         ▼
-    Process request 
-
-
+    ↓
+Backend hashes password (Argon2)
+    ↓
+Save to users table
+    ↓
+Generate JWT token
+    ↓
+Return {access_token: "eyJhbGc..."}
+    ↓
+Frontend stores in localStorage
+    ↓
+Add to all requests: Authorization: Bearer <token>
+    ↓
+User authenticated 
 
 
 
